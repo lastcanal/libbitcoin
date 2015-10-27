@@ -63,7 +63,7 @@ protocol::protocol(threadpool& pool, channel::ptr channel,
 
 config::authority protocol::authority() const
 {
-    return stopped() ? config::authority() : channel_->address();
+    return channel_->authority();
 }
 
 void protocol::complete(const code& ec) const
@@ -108,7 +108,8 @@ void protocol::start()
     start_ = nullptr;
 }
 
-// Protocols either stop themselves or stop on channel stop.
+// Protocols either complete with callback or stop the channel.
+// If the protocol doesn't stop the channel it lingers until channel stop.
 void protocol::stop(const code& ec)
 {
     if (stopped())
@@ -119,7 +120,7 @@ void protocol::stop(const code& ec)
 
 bool protocol::stopped() const
 {
-    return !channel_;
+    return channel_->stopped();
 }
 
 void protocol::subscribe_stop()
@@ -146,11 +147,8 @@ void protocol::subscribe_timer(threadpool& pool,
     
 void protocol::handle_stop(const code& ec)
 {
-    // This resource must be protected by stranding calls on this class.
-    channel_ = nullptr;
-
     log::debug(LOG_PROTOCOL)
-        << "Stopped " << name_ << " protocol on [" << authority() << "] "
+        << "Stopped protocol_" << name_ << " on [" << authority() << "] "
         << ec.message();
 
     if (deadline_)

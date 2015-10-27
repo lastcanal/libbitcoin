@@ -88,7 +88,7 @@ void proxy::talk()
     read_heading();
 }
 
-config::authority proxy::address() const
+config::authority proxy::authority() const
 {
     return authority_;
 }
@@ -175,7 +175,7 @@ void proxy::handle_read_heading(const boost_code& ec, size_t)
     if (ec)
     {
         log::debug(LOG_NETWORK)
-            << "Channel failure [" << address() << "] "
+            << "Channel failure [" << authority() << "] "
             << code(error::boost_to_error_code(ec)).message();
         stop(ec);
         return;
@@ -187,7 +187,7 @@ void proxy::handle_read_heading(const boost_code& ec, size_t)
     if (!parsed || head.magic != magic_)
     {
         log::warning(LOG_NETWORK) 
-            << "Invalid heading received [" << address() << "]";
+            << "Invalid heading received [" << authority() << "]";
         stop(error::bad_stream);
         return;
     }
@@ -195,14 +195,14 @@ void proxy::handle_read_heading(const boost_code& ec, size_t)
     if (head.payload_size > max_payload_size)
     {
         log::warning(LOG_NETWORK)
-            << "Oversized payload indicated [" << address() << "] ("
+            << "Oversized payload indicated [" << authority() << "] ("
             << head.payload_size << " bytes)";
         stop(error::bad_stream);
         return;
     }
 
     log::debug(LOG_NETWORK)
-        << "Receive " << head.command << " [" << address() << "] ("
+        << "Receive " << head.command << " [" << authority() << "] ("
         << head.payload_size << " bytes)";
 
     read_payload(head);
@@ -220,7 +220,7 @@ void proxy::handle_read_payload(const boost_code& ec, size_t,
     if (heading.checksum != bitcoin_checksum(payload_buffer_))
     {
         log::warning(LOG_NETWORK) 
-            << "Invalid bitcoin checksum from [" << address() << "]";
+            << "Invalid bitcoin checksum from [" << authority() << "]";
         stop(error::bad_stream);
         return;
     }
@@ -250,7 +250,7 @@ void proxy::handle_read_payload(const boost_code& ec, size_t,
     {
         log::warning(LOG_NETWORK)
             << "Invalid payload of " << heading.command
-            << " from [" << address() << "] (deferred)"
+            << " from [" << authority() << "] (deferred)"
             << code(error::boost_to_error_code(ec)).message();
         stop(ec);
         return;
@@ -261,7 +261,7 @@ void proxy::handle_read_payload(const boost_code& ec, size_t,
     {
         log::warning(LOG_NETWORK)
             << "Invalid stream load of " << heading.command
-            << " from [" << address() << "] " << error.message();
+            << " from [" << authority() << "] " << error.message();
         stop(error);
     }
 }
@@ -276,7 +276,7 @@ void proxy::do_send(const data_chunk& message, send_handler handler,
     }
 
     log::debug(LOG_NETWORK)
-        << "Send " << command << " [" << address() << "] ("
+        << "Send " << command << " [" << authority() << "] ("
         << message.size() << " bytes)";
 
     const shared_const_buffer buffer(message);

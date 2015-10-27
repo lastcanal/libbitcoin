@@ -56,6 +56,11 @@ void log::set_output_function(functor value)
     destinations_[level_] = value;
 }
 
+void log::clear()
+{
+    destinations_.clear();
+}
+
 log log::debug(const std::string& domain)
 {
     return log(level::debug, domain);

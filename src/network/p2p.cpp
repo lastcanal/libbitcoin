@@ -194,12 +194,6 @@ void p2p::start(result_handler handler)
     // This session keeps itself in scope as configured until stop.
     attach<session_inbound>();
 
-    if (settings_.host_pool_capacity == 0)
-    {
-        handler(error::success);
-        return;
-    }
-
     hosts_.load(
         dispatch_.ordered_delegate(&p2p::handle_hosts_loaded,
             this, _1, handler));
@@ -220,7 +214,7 @@ void p2p::handle_hosts_loaded(const code& ec, result_handler handler)
         dispatch_.ordered_delegate(&p2p::handle_hosts_seeded,
             this, _1, handler);
 
-    // This session keeps itself in scope as configured until complete or stop.
+    // The instance is retained by the stop handler (i.e. until shutdown).
     attach<session_seed>(handle_complete);
 }
 
@@ -230,7 +224,7 @@ void p2p::handle_hosts_seeded(const code& ec, result_handler handler)
         return;
 
     // If hosts load/seeding was successful, start outbound calls.
-    // This session keeps itself in scope as configured until stop.
+    // This session keeps itself in scope as configured until service stop.
     if (!ec)
         attach<session_outbound>();
 
@@ -250,23 +244,26 @@ void p2p::stop()
 // This must be called from the thread that constructed this class.
 void p2p::stop(result_handler handler)
 {
+    if (stopped())
+        return;
+
     stopped_ = true;
     relay(error::service_stopped, nullptr);
     connections_.clear(error::service_stopped);
 
-    if (handler != nullptr)
-        hosts_.save(
-            dispatch_.ordered_delegate(&p2p::handle_stop,
-                this, _1, handler));
+    hosts_.save(
+        dispatch_.ordered_delegate(&p2p::handle_stop,
+            this, _1, handler));
 
-    // This will wait for host save to complete, including handle_stop call.
+    // Join will wait for host save to complete, including handle_stop call.
     pool_.shutdown();
     pool_.join();
 }
 
 void p2p::handle_stop(const code& ec, result_handler handler)
 {
-    handler(ec);
+    if (handler != nullptr)
+        handler(ec);
 }
 
 bool p2p::stopped() const
@@ -325,7 +322,7 @@ void p2p::connected_count(count_handler handler)
 
 void p2p::fetch_address(address_handler handler)
 {
-    hosts_.fetch_address(handler);
+    hosts_.fetch(handler);
 }
 
 void p2p::store(const address& address, result_handler handler)
@@ -354,7 +351,8 @@ void p2p::address_count(count_handler handler)
 // This can be called without starting the network.
 void p2p::connect(const std::string& hostname, uint16_t port)
 {
-    // This session keeps itself in scope until complete or stop.
+    // BUGBUG: each instance is retained by the stop handler.
+    // This session keeps itself in scope until complete or service stop.
     // For frequent connections it would be more efficient to keep the session
     // in a member and connect as necessary, but this is simpler.
     attach<session_manual>()->connect(hostname, port);
@@ -364,6 +362,7 @@ void p2p::connect(const std::string& hostname, uint16_t port)
 void p2p::connect(const std::string& hostname, uint16_t port,
     channel_handler handler)
 {
+    // BUGBUG: each instance is retained by the stop handler.
     // This session keeps itself in scope until complete or stop.
     // For frequent connections it would be more efficient to keep the session
     // in a member and connect as necessary, but this is simpler.

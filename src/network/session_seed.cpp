@@ -56,8 +56,13 @@ void session_seed::start(result_handler handler)
     if (!stopped())
         return;
 
-    if (settings_.outbound_connections == 0)
+    if (settings_.host_pool_capacity == 0)
+    {
+        log::info(LOG_NETWORK)
+            << "Not configured to populate a host pool.";
         handler(error::success);
+        return;
+    }
 
     address_count(
         dispatch_.ordered_delegate(&session_seed::handle_count,
@@ -67,12 +72,18 @@ void session_seed::start(result_handler handler)
 void session_seed::handle_count(size_t start_size, result_handler handler)
 {
     if (start_size != 0)
+    {
+        log::debug(LOG_NETWORK)
+            << "Seeding is not required because there are " 
+            << start_size << " cached addresses.";
         handler(error::success);
+        return;
+    }
 
     if (settings_.seeds.empty())
     {
-        log::info(LOG_NETWORK)
-            << "Seeding is required but no seed channels are configured.";
+        log::error(LOG_NETWORK)
+            << "Seeding is required but no seeds are configured.";
         handler(bc::error::operation_failed);
         return;
     }
@@ -125,7 +136,7 @@ void session_seed::handle_connect(const code& ec, channel::ptr channel,
         return;
     }
 
-    if (blacklisted(channel->address()))
+    if (blacklisted(channel->authority()))
     {
         log::debug(LOG_NETWORK)
             << "Seed is on blacklisted address [" << seed << "] ";
@@ -134,7 +145,7 @@ void session_seed::handle_connect(const code& ec, channel::ptr channel,
     }
 
     log::info(LOG_NETWORK)
-        << "Connected seed [" << seed << "] as " << channel->address();
+        << "Connected seed [" << seed << "] as " << channel->authority();
 
     register_channel(channel, 
         std::bind(&session_seed::handle_channel_start,

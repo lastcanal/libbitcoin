@@ -100,7 +100,7 @@ public:
     bool stopped() const;
     void stop(const code& ec);
     void subscribe_stop(stop_handler handler);
-    config::authority address() const;
+    config::authority authority() const;
 
 protected:
     virtual void handle_activity() = 0;

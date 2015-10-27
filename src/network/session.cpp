@@ -207,7 +207,7 @@ void session::handle_handshake(const code& ec, channel::ptr channel,
     if (ec)
     {
         log::debug(LOG_NETWORK)
-            << "Failure in handshake with [" << channel->address()
+            << "Failure in handshake with [" << channel->authority()
             << "] " << ec.message();
         handle_started(ec);
         return;
@@ -233,7 +233,7 @@ void session::handle_is_pending(bool pending, channel::ptr channel,
     if (pending)
     {
         log::debug(LOG_NETWORK)
-            << "Rejected connection from [" << channel->address()
+            << "Rejected connection from [" << channel->authority()
             << "] as loopback.";
         handle_started(error::accept_failed);
         return;
@@ -244,7 +244,8 @@ void session::handle_is_pending(bool pending, channel::ptr channel,
     {
         log::debug(LOG_NETWORK)
             << "Peer version (" << version.value << ") below minimum ("
-            << bc::peer_minimum_version << ") [" << channel->address() << "]";
+            << bc::peer_minimum_version << ") [" 
+            << channel->authority() << "]";
         handle_started(error::accept_failed);
         return;
     }
@@ -309,13 +310,13 @@ void session::remove(const code& ec, channel::ptr channel,
 void session::handle_unpend(const code& ec)
 {
     if (ec)
-        log::debug(LOG_NETWORK) << "Failed to unpend a channel.";
+        log::warning(LOG_NETWORK) << "Failed to unpend a channel.";
 }
 
 void session::handle_remove(const code& ec)
 {
     if (ec)
-        log::debug(LOG_NETWORK) << "Failed to remove a channel.";
+        log::warning(LOG_NETWORK) << "Failed to remove a channel.";
 }
 
 } // namespace network

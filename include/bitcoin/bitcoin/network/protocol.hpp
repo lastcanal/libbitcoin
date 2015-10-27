@@ -91,7 +91,7 @@ protected:
     }
 
     /**
-     * Gets the authority of this channel.
+     * Gets the address of the channel.
      */
     config::authority authority() const;
     

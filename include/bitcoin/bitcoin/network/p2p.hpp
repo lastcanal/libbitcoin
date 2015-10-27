@@ -74,12 +74,12 @@ public:
     void start(result_handler handler);
 
     /// Stop after saving hosts file.
-    /// Handler indicates hosts save result and is called after all threads
-    /// are coalesced. This call is optional.
+    /// This call is optional as destruct will do the same. The handler
+    /// provides the hosts save result, called after all threads are coalesced.
     /// This must be called from the thread that constructed this class.
     void stop(result_handler handler);
 
-    /// Stop without saving hosts file.
+    /// Stop after saving hosts file.
     /// This call is optional as destruct will do the same, although this
     /// allows the caller to block until all threads are coalesced.
     /// This must be called from the thread that constructed this class.

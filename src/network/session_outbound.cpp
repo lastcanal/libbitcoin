@@ -54,8 +54,8 @@ void session_outbound::start()
 
     if (settings_.outbound_connections == 0)
     {
-        log::debug(LOG_NETWORK)
-            << "No configured outbound connections.";
+        log::info(LOG_NETWORK)
+            << "Not configured for outbound connections.";
         return;
     }
 
@@ -117,7 +117,7 @@ void session_outbound::handle_connect(const code& ec, channel::ptr channel,
     }
 
     log::info(LOG_NETWORK)
-        << "Connected to outbound channel [" << channel->address() << "]";
+        << "Connected to outbound channel [" << channel->authority() << "]";
 
     register_channel(channel, 
         std::bind(&session_outbound::handle_channel_start,

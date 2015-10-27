@@ -48,8 +48,13 @@ public:
     log(log&& other);
     ~log();
 
+    /// Clear all log configuration.
+    static void clear();
+
+    /// Convert the log level to English text.
     static std::string to_text(level level);
 
+    // Stream to these functions.
     static log debug(const std::string& domain);
     static log info(const std::string& domain);
     static log warning(const std::string& domain);

@@ -68,7 +68,7 @@ void protocol_seed::start()
     if (disabled_)
     {
         // Stops channel and ends callback synchronization.
-        stop(error::not_found);
+        complete(error::not_found);
         return;
     }
 
@@ -96,9 +96,6 @@ void protocol_seed::handle_receive_address(const code& ec,
 
     if (ec)
     {
-        // We are getting here with channel stopped because this session
-        // doesn't register a stop handler. We may be getting stopped due to
-        // failure to handle ping on this session.
         log::debug(LOG_PROTOCOL)
             << "Failure receiving addresses from seed [" << authority() << "] "
             << ec.message();
@@ -167,6 +164,9 @@ void protocol_seed::handle_store_addresses(const code& ec)
 
     // 3 of 3
     complete(error::success);
+
+    log::debug(LOG_PROTOCOL)
+        << "Stopping seed channel [" << authority() << "] ";
     stop(error::channel_stopped);
 }
 

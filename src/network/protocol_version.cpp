@@ -78,7 +78,7 @@ message::version protocol_version::template_factory(channel::ptr channel,
     auto version = protocol_version::template_;
 
     // The timestamp should not used here and there's no need to set services.
-    version.address_you = channel->address().to_network_address();
+    version.address_you = channel->authority().to_network_address();
 
     // The timestamp should not used here and services should be set in config.
     version.address_me = settings.self.to_network_address();
@@ -126,7 +126,7 @@ void protocol_version::handle_receive_version(const code& ec,
         log::error(LOG_PROTOCOL)
             << "Failure receiving version from [" << authority() << "] "
             << ec.message();
-        stop(ec);
+        complete(ec);
         return;
     }
 
@@ -148,7 +148,7 @@ void protocol_version::handle_verack_sent(const code& ec)
         log::error(LOG_PROTOCOL)
             << "Failure sending verack to [" << authority() << "] "
             << ec.message();
-        stop(ec);
+        complete(ec);
         return;
     }
 
@@ -166,7 +166,7 @@ void protocol_version::handle_version_sent(const code& ec)
         log::error(LOG_PROTOCOL)
             << "Failure sending version to [" << authority() << "] "
             << ec.message();
-        stop(ec);
+        complete(ec);
         return;
     }
 
@@ -185,7 +185,7 @@ void protocol_version::handle_receive_verack(const code& ec,
         log::error(LOG_PROTOCOL)
             << "Failure receiving verack from [" << authority() << "] "
             << ec.message();
-        stop(ec);
+        complete(ec);
         return;
     }
 

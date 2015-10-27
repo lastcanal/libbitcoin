@@ -17,67 +17,99 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+#include <cstdio>
 #include <future>
+#include <boost/format.hpp>
 #include <boost/test/unit_test.hpp>
 #include <bitcoin/bitcoin.hpp>
 
 using namespace bc;
 using namespace bc::network;
 
-BOOST_AUTO_TEST_SUITE(network_tests)
+#define LOG_TEST "network_tests"
 
-BOOST_AUTO_TEST_CASE(p2p__start__defaults__okay)
+class log_setup_fixture
+{
+public:
+    log_setup_fixture()
+      : debug_log_(LOG_TEST ".debug.log", log_open_mode),
+        error_log_(LOG_TEST ".error.log", log_open_mode)
+    {
+        static const auto header = "=========== " LOG_TEST " ==========";;
+        initialize_logging(debug_log_, error_log_, std::cout, std::cerr);
+        log::debug(LOG_TEST) << header;
+        log::error(LOG_TEST) << header;
+    }
+
+    ~log_setup_fixture()
+    {
+        log::clear();
+    }
+
+private:
+    std::ofstream debug_log_;
+    std::ofstream error_log_;
+};
+
+BOOST_FIXTURE_TEST_SUITE(network_tests, log_setup_fixture)
+
+BOOST_AUTO_TEST_CASE(p2p__start__no_connections__start_stop_okay)
 {
     settings configuration = p2p::testnet;
     configuration.threads = 1;
+    configuration.host_pool_capacity = 42;
+    configuration.outbound_connections = 0;
     configuration.inbound_connection_limit = 0;
     configuration.seeds = { configuration.seeds[1] };
-
     p2p network(configuration);
 
-    std::promise<const code&> started;
+    std::promise<code> started;
+    auto started_future = started.get_future();
     const auto start_handler = [&started](const code& ec)
     {
         started.set_value(ec);
     };
-
     network.start(start_handler);
+    started_future.wait();
+    BOOST_REQUIRE_EQUAL(started_future.get(), code(error::success));
 
-    // Wait until start is complete.
-    const auto start_code = started.get_future().get().value();
-    BOOST_REQUIRE_EQUAL(start_code, error::success);
-
-    std::promise<const code&> stopped;
+    std::promise<code> stopped;
+    auto stop_future = stopped.get_future();
     const auto stop_handler = [&stopped](const code& ec)
     {
         stopped.set_value(ec);
     };
-
     network.stop(stop_handler);
-
-    // Wait until stop is complete.
-    const auto stop_code = stopped.get_future().get().value();
-    BOOST_REQUIRE_EQUAL(stop_code, error::success);
+    stop_future.wait();
+    BOOST_REQUIRE_EQUAL(stop_future.get(), code(error::success));
 }
 
-BOOST_AUTO_TEST_CASE(p2p__stop__defaults__okay)
+BOOST_AUTO_TEST_CASE(p2p__start__no_connections_or_capacity__start_stop_okay)
 {
     settings configuration = p2p::testnet;
     configuration.threads = 1;
+    configuration.host_pool_capacity = 0;
+    configuration.outbound_connections = 0;
     configuration.inbound_connection_limit = 0;
-
     p2p network(configuration);
 
-    std::promise<const code&> result;
-    const auto handler = [&result](const code& ec)
+    std::promise<code> started;
+    const auto start_handler = [&started](const code& ec)
     {
-        result.set_value(ec);
+        started.set_value(ec);
     };
+    network.start(start_handler);
+    const auto start_code = started.get_future().get();
+    BOOST_REQUIRE_EQUAL(start_code, code(error::success));
 
-    network.stop(handler);
-
-    // Wait until stop is complete and verify it was successful.
-    BOOST_REQUIRE_EQUAL(result.get_future().get().value(), error::success);
+    std::promise<code> stopped;
+    const auto stop_handler = [&stopped](const code& ec)
+    {
+        stopped.set_value(ec);
+    };
+    network.stop(stop_handler);
+    const auto stop_code = stopped.get_future().get();
+    BOOST_REQUIRE_EQUAL(stop_code, code(error::success));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

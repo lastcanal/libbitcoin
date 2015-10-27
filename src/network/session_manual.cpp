@@ -104,7 +104,7 @@ void session_manual::handle_connect(const code& ec, channel::ptr channel,
 
     log::info(LOG_NETWORK)
         << "Connected manual channel [" << config::endpoint(hostname, port)
-        << "] as [" << channel->address() << "]";
+        << "] as [" << channel->authority() << "]";
 
     register_channel(channel, 
         std::bind(&session_manual::handle_channel_start,
