@@ -39,6 +39,7 @@
 #include <bitcoin/bitcoin/network/session_outbound.hpp>
 #include <bitcoin/bitcoin/network/session_seed.hpp>
 #include <bitcoin/bitcoin/utility/assert.hpp>
+#include <bitcoin/bitcoin/utility/thread.hpp>
 #include <bitcoin/bitcoin/utility/threadpool.hpp>
 
 INITIALIZE_TRACK(bc::network::channel::channel_subscriber);
@@ -149,7 +150,6 @@ p2p::p2p(const settings& settings)
   : stopped_(true),
     height_(0),
     settings_(settings),
-    pool_(settings_.threads),
     dispatch_(pool_),
     pending_(pool_),
     connections_(pool_),
@@ -185,11 +185,14 @@ void p2p::set_height(size_t value)
 
 void p2p::start(result_handler handler)
 {
-    // If we ever allow restart we need to isolate start/stop.
     if (!stopped())
+    {
+        handler(error::operation_failed);
         return;
+    }
 
     stopped_ = false;
+    pool_.spawn(settings_.threads, thread_priority::low);
 
     // This session keeps itself in scope as configured until stop.
     attach<session_inbound>();
