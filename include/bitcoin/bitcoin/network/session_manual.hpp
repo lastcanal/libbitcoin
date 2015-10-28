@@ -30,12 +30,13 @@
 #include <bitcoin/bitcoin/network/channel.hpp>
 #include <bitcoin/bitcoin/network/connector.hpp>
 #include <bitcoin/bitcoin/network/network_settings.hpp>
-#include <bitcoin/bitcoin/network/p2p.hpp>
 #include <bitcoin/bitcoin/network/session.hpp>
 #include <bitcoin/bitcoin/utility/threadpool.hpp>
 
 namespace libbitcoin {
 namespace network {
+    
+class p2p;
 
 class BC_API session_manual
   : public session, track<session_manual>
@@ -49,6 +50,8 @@ public:
     /// This class is not copyable.
     session_manual(const session_manual&) = delete;
     void operator=(const session_manual&) = delete;
+
+    void start() override;
 
     void connect(const std::string& hostname, uint16_t port);
     void connect(const std::string& hostname, uint16_t port,

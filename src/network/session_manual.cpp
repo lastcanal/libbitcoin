@@ -43,10 +43,15 @@ using std::placeholders::_2;
 
 session_manual::session_manual(threadpool& pool, p2p& network,
     const settings& settings)
-  : connect_(create_connector()),
-    session(pool, network, settings, false, false),
+  : session(pool, network, settings, false, false),
     CONSTRUCT_TRACK(session_manual, LOG_NETWORK)
 {
+}
+
+void session_manual::start()
+{
+    session::start();
+    connect_ = create_connector();
 }
 
 // Must call start() before connect.

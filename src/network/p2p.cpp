@@ -197,6 +197,9 @@ void p2p::start(result_handler handler)
     // This session keeps itself in scope as configured until stop.
     attach<session_inbound>();
 
+    // This session is always in scope when started.
+    manual_ = attach<session_manual>();
+
     hosts_.load(
         dispatch_.ordered_delegate(&p2p::handle_hosts_loaded,
             this, _1, handler));
@@ -253,6 +256,7 @@ void p2p::stop(result_handler handler)
     stopped_ = true;
     relay(error::service_stopped, nullptr);
     connections_.clear(error::service_stopped);
+    manual_ = nullptr;
 
     hosts_.save(
         dispatch_.ordered_delegate(&p2p::handle_stop,
@@ -351,25 +355,17 @@ void p2p::address_count(count_handler handler)
 // Channel management.
 // ----------------------------------------------------------------------------
 
-// This can be called without starting the network.
+// Start must be called before this.
 void p2p::connect(const std::string& hostname, uint16_t port)
 {
-    // BUGBUG: each instance is retained by the stop handler.
-    // This session keeps itself in scope until complete or service stop.
-    // For frequent connections it would be more efficient to keep the session
-    // in a member and connect as necessary, but this is simpler.
-    attach<session_manual>()->connect(hostname, port);
+    manual_->connect(hostname, port);
 }
 
-// This can be called without starting the network.
+// Start must be called before this.
 void p2p::connect(const std::string& hostname, uint16_t port,
     channel_handler handler)
 {
-    // BUGBUG: each instance is retained by the stop handler.
-    // This session keeps itself in scope until complete or stop.
-    // For frequent connections it would be more efficient to keep the session
-    // in a member and connect as necessary, but this is simpler.
-    attach<session_manual>()->connect(hostname, port, handler);
+    manual_->connect(hostname, port, handler);
 }
 
 void p2p::subscribe(channel_handler handler)
