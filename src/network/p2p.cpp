@@ -355,17 +355,21 @@ void p2p::address_count(count_handler handler)
 // Channel management.
 // ----------------------------------------------------------------------------
 
-// Start must be called before this.
 void p2p::connect(const std::string& hostname, uint16_t port)
 {
+    if (stopped())
+        return;
+
     manual_->connect(hostname, port);
 }
 
-// Start must be called before this.
 void p2p::connect(const std::string& hostname, uint16_t port,
     channel_handler handler)
 {
-    manual_->connect(hostname, port, handler);
+    if (stopped())
+        handler(error::service_stopped, nullptr);
+    else
+        manual_->connect(hostname, port, handler);
 }
 
 void p2p::subscribe(channel_handler handler)
