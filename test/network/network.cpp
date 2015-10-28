@@ -27,12 +27,12 @@
 using namespace bc;
 using namespace bc::network;
 
-#define LOG_TEST "network_tests"
+#define TEST_SET_NAME "network_tests"
 
-#define UNIT_TEST_NAME \
+#define TEST_NAME \
     boost::unit_test::framework::current_test_case().p_name
 
-std::string get_clear_log_path(const std::string& test, const std::string& file)
+std::string get_log_path(const std::string& test, const std::string& file)
 {
     const auto path = test + "." + file + ".log";
     boost::filesystem::remove_all(path);
@@ -43,8 +43,8 @@ class log_setup_fixture
 {
 public:
     log_setup_fixture()
-      : debug_log_(get_clear_log_path(LOG_TEST, "debug"), log_open_mode),
-        error_log_(get_clear_log_path(LOG_TEST, "error"), log_open_mode)
+      : debug_log_(get_log_path(TEST_SET_NAME, "debug"), log_open_mode),
+        error_log_(get_log_path(TEST_SET_NAME, "error"), log_open_mode)
     {
         initialize_logging(debug_log_, error_log_, std::cout, std::cerr);
     }
@@ -62,8 +62,8 @@ private:
 static void print_headers(const std::string& test)
 {
     const auto header = "=========== " + test + " ==========";
-    log::debug(LOG_TEST) << header;
-    log::error(LOG_TEST) << header;
+    log::debug(TEST_SET_NAME) << header;
+    log::error(TEST_SET_NAME) << header;
 }
 
 static int start_result(p2p& network)
@@ -92,7 +92,7 @@ BOOST_FIXTURE_TEST_SUITE(network_tests, log_setup_fixture)
 
 BOOST_AUTO_TEST_CASE(p2p__start__no_connections_or_capacity__start_stop_okay)
 {
-    print_headers(UNIT_TEST_NAME);
+    print_headers(TEST_NAME);
     settings configuration = p2p::testnet;
     configuration.threads = 1;
     configuration.host_pool_capacity = 0;
@@ -107,13 +107,13 @@ BOOST_AUTO_TEST_CASE(p2p__start__no_connections_or_capacity__start_stop_okay)
 
 BOOST_AUTO_TEST_CASE(p2p__start__no_connections_or_capacity__double_start_failure)
 {
-    print_headers(UNIT_TEST_NAME);
+    print_headers(TEST_NAME);
     settings configuration = p2p::testnet;
     configuration.threads = 1;
     configuration.host_pool_capacity = 0;
     configuration.outbound_connections = 0;
     configuration.inbound_connection_limit = 0;
-    configuration.hosts_file = get_clear_log_path(UNIT_TEST_NAME, "hosts");
+    configuration.hosts_file = get_log_path(TEST_NAME, "hosts");
 
     p2p network(configuration);
 
@@ -123,14 +123,14 @@ BOOST_AUTO_TEST_CASE(p2p__start__no_connections_or_capacity__double_start_failur
 
 BOOST_AUTO_TEST_CASE(p2p__start__seed__restart_okay)
 {
-    print_headers(UNIT_TEST_NAME);
+    print_headers(TEST_NAME);
     settings configuration = p2p::testnet;
     configuration.threads = 1;
     configuration.host_pool_capacity = 42;
     configuration.outbound_connections = 0;
     configuration.inbound_connection_limit = 0;
     configuration.seeds = { configuration.seeds[1] };
-    configuration.hosts_file = get_clear_log_path(UNIT_TEST_NAME, "hosts");
+    configuration.hosts_file = get_log_path(TEST_NAME, "hosts");
 
     p2p network(configuration);
 
