@@ -208,7 +208,10 @@ void p2p::start(result_handler handler)
 void p2p::handle_hosts_loaded(const code& ec, result_handler handler)
 {
     if (stopped())
+    {
+        handler(error::service_stopped);
         return;
+    }
 
     if (ec)
     {
@@ -224,19 +227,26 @@ void p2p::handle_hosts_loaded(const code& ec, result_handler handler)
     attach<session_seed>(handle_complete);
 }
 
+// This is the end of the startup cycle.
 void p2p::handle_hosts_seeded(const code& ec, result_handler handler)
 {
     if (stopped())
+    {
+        handler(error::service_stopped);
         return;
+    }
+
+    if (ec)
+    {
+        handler(ec);
+        stop();
+        return;
+    }
 
     // If hosts load/seeding was successful, start outbound calls.
     // This session keeps itself in scope as configured until service stop.
-    if (!ec)
-        attach<session_outbound>();
-
-    // This is the end of the startup cycle.
-    // Inbound calls may still be accepting even if this returns failure.
-    handler(ec);
+    attach<session_outbound>();
+    handler(error::success);
 }
 
 // Shutdown processing.
@@ -251,7 +261,10 @@ void p2p::stop()
 void p2p::stop(result_handler handler)
 {
     if (stopped())
+    {
+        handle_stop(error::service_stopped, handler);
         return;
+    }
 
     stopped_ = true;
     relay(error::service_stopped, nullptr);
