@@ -46,16 +46,23 @@ using std::placeholders::_1;
 using std::placeholders::_2;
 
 protocol::completion_handler protocol_seed::synchronizer_factory(
-    completion_handler handler)
+    channel::ptr channel, completion_handler handler)
 {
-    return synchronize(handler, 3, NAME);
+    const auto stop_on_error = [channel, handler](const code& ec)
+    {
+        handler(ec);
+        if (ec)
+            channel->stop(ec);
+    };
+
+    return synchronize(stop_on_error, 3, NAME);
 }
 
 // Require three callbacks (or any error) before calling complete.
 protocol_seed::protocol_seed(threadpool& pool, p2p& network,
     const settings& settings, channel::ptr channel, completion_handler handler)
   : protocol_base(pool, channel, settings.channel_germination(), NAME,
-        synchronizer_factory(handler)),
+    synchronizer_factory(channel, handler)),
     network_(network),
     self_(settings.self),
     disabled_(settings.host_pool_capacity == 0),
@@ -99,7 +106,7 @@ void protocol_seed::handle_receive_address(const code& ec,
         log::debug(LOG_PROTOCOL)
             << "Failure receiving addresses from seed [" << authority() << "] "
             << ec.message();
-        stop(ec);
+        complete(ec);
         return;
     }
 
@@ -122,7 +129,7 @@ void protocol_seed::handle_send_address(const code& ec)
         log::debug(LOG_PROTOCOL)
             << "Failure sending address to seed [" << authority() << "] "
             << ec.message();
-        stop(ec);
+        complete(ec);
         return;
     }
 
@@ -140,7 +147,7 @@ void protocol_seed::handle_send_get_address(const code& ec)
         log::debug(LOG_PROTOCOL)
             << "Failure sending get_address to seed [" << authority() << "] "
             << ec.message();
-        stop(ec);
+        complete(ec);
         return;
     }
 
@@ -158,16 +165,15 @@ void protocol_seed::handle_store_addresses(const code& ec)
         log::error(LOG_PROTOCOL)
             << "Failure storing addresses from seed [" << authority() << "] "
             << ec.message();
-        stop(ec);
+        complete(ec);
         return;
     }
 
-    // 3 of 3
-    complete(error::success);
-
     log::debug(LOG_PROTOCOL)
-        << "Stopping seed channel [" << authority() << "] ";
-    stop(error::channel_stopped);
+        << "Stopping completed seed [" << authority() << "] ";
+
+    // 3 of 3
+    complete(error::channel_stopped);
 }
 
 } // namespace network

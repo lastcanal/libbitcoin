@@ -90,7 +90,7 @@ static int stop_result(p2p& network)
 
 BOOST_FIXTURE_TEST_SUITE(network_tests, log_setup_fixture)
 
-BOOST_AUTO_TEST_CASE(p2p__start__no_connections_or_capacity__start_stop_okay)
+BOOST_AUTO_TEST_CASE(p2p__start__no_connections__start_stop_success)
 {
     print_headers(TEST_NAME);
     settings configuration = p2p::testnet;
@@ -105,7 +105,7 @@ BOOST_AUTO_TEST_CASE(p2p__start__no_connections_or_capacity__start_stop_okay)
     BOOST_REQUIRE_EQUAL(stop_result(network), error::success);
 }
 
-BOOST_AUTO_TEST_CASE(p2p__start__no_connections_or_capacity__double_start_failure)
+BOOST_AUTO_TEST_CASE(p2p__start__no_sessions__start_success_start_operation_failed)
 {
     print_headers(TEST_NAME);
     settings configuration = p2p::testnet;
@@ -118,10 +118,29 @@ BOOST_AUTO_TEST_CASE(p2p__start__no_connections_or_capacity__double_start_failur
     p2p network(configuration);
 
     BOOST_REQUIRE_EQUAL(start_result(network), error::success);
+
+    // The service is already started so this call fails immediately.
     BOOST_REQUIRE_EQUAL(start_result(network), error::operation_failed);
 }
 
-BOOST_AUTO_TEST_CASE(p2p__start__seed__restart_okay)
+BOOST_AUTO_TEST_CASE(p2p__start__seed_session__start_stop_success)
+{
+    print_headers(TEST_NAME);
+    settings configuration = p2p::testnet;
+    configuration.threads = 1;
+    configuration.host_pool_capacity = 42;
+    configuration.outbound_connections = 0;
+    configuration.inbound_connection_limit = 0;
+    configuration.seeds = { configuration.seeds[1] };
+    configuration.hosts_file = get_log_path(TEST_NAME, "hosts");
+
+    p2p network(configuration);
+
+    BOOST_REQUIRE_EQUAL(start_result(network), error::success);
+    BOOST_REQUIRE_EQUAL(stop_result(network), error::success);
+}
+
+BOOST_AUTO_TEST_CASE(p2p__start__seed_session__start_stop_start_success)
 {
     print_headers(TEST_NAME);
     settings configuration = p2p::testnet;
@@ -137,6 +156,29 @@ BOOST_AUTO_TEST_CASE(p2p__start__seed__restart_okay)
     BOOST_REQUIRE_EQUAL(start_result(network), error::success);
     BOOST_REQUIRE_EQUAL(stop_result(network), error::success);
     BOOST_REQUIRE_EQUAL(start_result(network), error::success);
+}
+
+BOOST_AUTO_TEST_CASE(p2p__start__seed_session_handshake_timeout__start_operation_failed_stop_service_stopped)
+{
+    print_headers(TEST_NAME);
+    settings configuration = p2p::testnet;
+    configuration.threads = 1;
+    configuration.host_pool_capacity = 42;
+    configuration.outbound_connections = 0;
+    configuration.inbound_connection_limit = 0;
+    configuration.seeds = { configuration.seeds[1] };
+    configuration.hosts_file = get_log_path(TEST_NAME, "hosts");
+
+    configuration.channel_handshake_seconds = 0;
+    p2p network(configuration);
+
+    // The (timeout) error on the individual connection is ignored.
+    // The connection failure results in a failure to generate any addresses.
+    // The failure to seed produces error::operation_failed.
+    BOOST_REQUIRE_EQUAL(start_result(network), error::operation_failed);
+    
+    // The service never started so this call fails immediately.
+    //BOOST_REQUIRE_EQUAL(stop_result(network), error::service_stopped);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

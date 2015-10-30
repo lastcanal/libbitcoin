@@ -46,7 +46,8 @@ public:
     void start() override;
 
 private:
-    static completion_handler synchronizer_factory(completion_handler handler);
+    static completion_handler synchronizer_factory(channel::ptr channel,
+        completion_handler handler);
     static message::version template_factory(channel::ptr channel,
         const settings& settings, size_t height);
 

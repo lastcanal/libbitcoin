@@ -80,6 +80,7 @@ connector::ptr session::create_connector()
     return connect;
 }
 
+// If we ever allow restart we need to guard start.
 void session::start()
 {
     if (!stopped())
@@ -143,7 +144,10 @@ void session::register_channel(channel::ptr channel,
     result_handler handle_started, result_handler handle_stopped)
 {
     if (stopped())
+    {
+        handle_started(error::service_stopped);
         return;
+    }
 
     // Place invocation of start handler on ordered delegate.
     const auto start_handler = 

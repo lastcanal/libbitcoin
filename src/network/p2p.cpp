@@ -216,6 +216,7 @@ void p2p::handle_hosts_loaded(const code& ec, result_handler handler)
     if (ec)
     {
         handler(ec);
+        stop();
         return;
     }
 
@@ -282,7 +283,7 @@ void p2p::stop(result_handler handler)
 
 void p2p::handle_stop(const code& ec, result_handler handler)
 {
-    if (handler != nullptr)
+    if (handler)
         handler(ec);
 }
 

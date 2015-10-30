@@ -67,9 +67,16 @@ const message::version protocol_version::template_
 };
 
 protocol::completion_handler protocol_version::synchronizer_factory(
-    completion_handler handler)
+    channel::ptr channel, completion_handler handler)
 {
-    return synchronize(handler, 3, NAME);
+    const auto stop_on_error = [channel, handler](const code& ec)
+    {
+        handler(ec);
+        if (ec)
+            channel->stop(ec);
+    };
+
+    return synchronize(stop_on_error, 3, NAME);
 }
 
 message::version protocol_version::template_factory(channel::ptr channel,
@@ -99,7 +106,7 @@ protocol_version::protocol_version(threadpool& pool, p2p&,
     const settings& settings, channel::ptr channel, size_t height,
     completion_handler handler)
   : protocol_base(pool, channel, settings.channel_handshake(), NAME,
-        synchronizer_factory(handler)),
+    synchronizer_factory(channel, handler)),
     height_(height),
     version_(template_factory(channel, settings, height)),
     CONSTRUCT_TRACK(protocol_version, LOG_PROTOCOL)

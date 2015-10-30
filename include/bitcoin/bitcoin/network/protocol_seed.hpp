@@ -61,7 +61,8 @@ public:
     void start() override;
 
 private:
-    static completion_handler synchronizer_factory(completion_handler handler);
+    static completion_handler synchronizer_factory(channel::ptr channel,
+        completion_handler handler);
 
     void handle_receive_address(const code& ec,
         const message::address& address);

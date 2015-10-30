@@ -52,9 +52,11 @@ session_seed::session_seed(threadpool& pool, p2p& network,
 
 void session_seed::start(result_handler handler)
 {
-    // If we ever allow restart we need to isolate start.
     if (!stopped())
+    {
+        handler(error::operation_failed);
         return;
+    }
 
     if (settings_.host_pool_capacity == 0)
     {
@@ -84,7 +86,7 @@ void session_seed::handle_count(size_t start_size, result_handler handler)
     {
         log::error(LOG_NETWORK)
             << "Seeding is required but no seeds are configured.";
-        handler(bc::error::operation_failed);
+        handler(error::operation_failed);
         return;
     }
 
@@ -114,7 +116,10 @@ void session_seed::start_seed(const config::endpoint& seed,
     connector::ptr connect, result_handler handler)
 {
     if (stopped())
+    {
+        handler(error::channel_stopped);
         return;
+    }
 
     log::info(LOG_NETWORK)
         << "Contacting seed [" << seed << "]";
@@ -158,7 +163,10 @@ void session_seed::handle_channel_start(const code& ec, channel::ptr channel,
     result_handler handler)
 {
     if (ec)
+    {
+        handler(ec);
         return;
+    }
 
     attach<protocol_ping>(channel);
     attach<protocol_seed>(channel, handler);
@@ -181,8 +189,8 @@ void session_seed::handle_complete(size_t start_size, result_handler handler)
 void session_seed::handle_final_count(size_t current_size, size_t start_size,
     result_handler handler)
 {
-    const auto result = current_size > start_size ? bc::error::success :
-        bc::error::operation_failed;
+    const auto result = current_size > start_size ? error::success :
+        error::operation_failed;
 
     handler(result);
 }

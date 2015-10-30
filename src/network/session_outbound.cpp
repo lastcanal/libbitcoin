@@ -48,7 +48,6 @@ session_outbound::session_outbound(threadpool& pool, p2p& network,
 
 void session_outbound::start()
 {
-    // If we ever allow restart we need to isolate start.
     if (!stopped())
         return;
 

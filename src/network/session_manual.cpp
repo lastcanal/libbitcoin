@@ -73,8 +73,11 @@ void session_manual::connect(const std::string& hostname, uint16_t port,
 void session_manual::start_connect(const std::string& hostname, uint16_t port,
     channel_handler handler, uint16_t retries)
 {
-    if (stopped())
+    if (!stopped())
+    {
+        handler(error::service_stopped, nullptr);
         return;
+    }
 
     // MANUAL CONNECT OUTBOUND
     connect_->connect(hostname, port,

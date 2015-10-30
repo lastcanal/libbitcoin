@@ -178,7 +178,7 @@ void channel::handle_revival(const code& ec)
         return;
 
     // Nothing to do, no handler registered.
-    if (revival_handler_ == nullptr)
+    if (!revival_handler_)
         return;
 
     revival_handler_(ec);

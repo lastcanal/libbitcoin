@@ -55,8 +55,11 @@ protocol::protocol(threadpool& pool, channel::ptr channel,
     completion_handler handler)
   : protocol(pool, channel, name, handler)
 {
-    start_ = [this, &pool, &timeout]()
+    // This replaces the value of start_ set by other override.
+    // Must copy timeout but the pool reference is persistent.
+    start_ = [this, &pool, timeout]()
     {
+        subscribe_stop();
         subscribe_timer(pool, timeout);
     };
 }
@@ -68,7 +71,7 @@ config::authority protocol::authority() const
 
 void protocol::complete(const code& ec) const
 {
-    if (completion_handler_ != nullptr)
+    if (completion_handler_)
         completion_handler_(ec);
 }
 
@@ -76,8 +79,8 @@ void protocol::complete(const code& ec) const
 // Ideally avoid this, but it works around no self-closure in construct.
 void protocol::set_handler(completion_handler handler)
 {
-    BITCOIN_ASSERT_MSG(completion_handler_ == nullptr, "Callback is set.");
-    if (completion_handler_ == nullptr)
+    BITCOIN_ASSERT_MSG(!completion_handler_, "Callback is set.");
+    if (completion_handler_)
         completion_handler_ = handler;
 }
 
@@ -91,7 +94,7 @@ void protocol::set_version(const message::version& value)
 
 bool protocol::started() const
 {
-    return start_ == nullptr;
+    return !start_;
 }
 
 // Startup is deferred until after construct in order to use shared_from_this.
@@ -163,7 +166,7 @@ void protocol::handle_timer(const code& ec)
         return;
 
     log::debug(LOG_PROTOCOL)
-        << "Fired " << name_ << " protocol timer on [" << authority() << "] "
+        << "Fired protocol_" << name_ << " timer on [" << authority() << "] "
         << ec.message();
 
     complete(error::channel_timeout);
