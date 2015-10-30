@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(p2p__start__seed_session__start_stop_start_success)
     BOOST_REQUIRE_EQUAL(start_result(network), error::success);
 }
 
-BOOST_AUTO_TEST_CASE(p2p__start__seed_session_handshake_timeout__start_operation_failed_stop_service_stopped)
+BOOST_AUTO_TEST_CASE(p2p__start__seed_session_handshake_timeout__start_operation_failed_stop_success)
 {
     print_headers(TEST_NAME);
     settings configuration = p2p::testnet;
@@ -174,11 +174,11 @@ BOOST_AUTO_TEST_CASE(p2p__start__seed_session_handshake_timeout__start_operation
 
     // The (timeout) error on the individual connection is ignored.
     // The connection failure results in a failure to generate any addresses.
-    // The failure to seed produces error::operation_failed.
+    // The failure to germinate produces error::operation_failed.
     BOOST_REQUIRE_EQUAL(start_result(network), error::operation_failed);
     
-    // The service never started so this call fails immediately.
-    //BOOST_REQUIRE_EQUAL(stop_result(network), error::service_stopped);
+    // The service never started but stop will still succeed (and is optional).
+    BOOST_REQUIRE_EQUAL(stop_result(network), error::success);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

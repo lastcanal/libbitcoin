@@ -45,6 +45,7 @@ public:
     typedef std::function<void(const code&, channel::ptr)> channel_handler;
 
     connections(threadpool& pool);
+    ~connections();
 
     /// This class is not copyable.
     connections(const connections&) = delete;

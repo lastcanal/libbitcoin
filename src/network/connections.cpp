@@ -23,6 +23,7 @@
 #include <bitcoin/bitcoin/config/authority.hpp>
 #include <bitcoin/bitcoin/error.hpp>
 #include <bitcoin/bitcoin/network/channel.hpp>
+#include <bitcoin/bitcoin/utility/assert.hpp>
 #include <bitcoin/bitcoin/utility/threadpool.hpp>
 
 namespace libbitcoin {
@@ -31,6 +32,11 @@ namespace network {
 connections::connections(threadpool& pool)
   : dispatch_(pool)
 {
+}
+
+connections::~connections()
+{
+    BITCOIN_ASSERT_MSG(buffer_.empty(), "Connection buffer not empty.");
 }
 
 connections::iterator connections::find(const authority& authority) const

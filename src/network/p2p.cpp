@@ -194,12 +194,6 @@ void p2p::start(result_handler handler)
     stopped_ = false;
     pool_.spawn(settings_.threads, thread_priority::low);
 
-    // This session keeps itself in scope as configured until stop.
-    attach<session_inbound>();
-
-    // This session is always in scope when started.
-    manual_ = attach<session_manual>();
-
     hosts_.load(
         dispatch_.ordered_delegate(&p2p::handle_hosts_loaded,
             this, _1, handler));
@@ -216,7 +210,6 @@ void p2p::handle_hosts_loaded(const code& ec, result_handler handler)
     if (ec)
     {
         handler(ec);
-        stop();
         return;
     }
 
@@ -240,13 +233,15 @@ void p2p::handle_hosts_seeded(const code& ec, result_handler handler)
     if (ec)
     {
         handler(ec);
-        stop();
         return;
     }
 
-    // If hosts load/seeding was successful, start outbound calls.
-    // This session keeps itself in scope as configured until service stop.
+    // If hosts load/seeding was successful, start other sessions.
+    // These are retained by the stop handler (and one manual reference).
+    attach<session_inbound>();
     attach<session_outbound>();
+    manual_ = attach<session_manual>();
+
     handler(error::success);
 }
 
@@ -268,9 +263,8 @@ void p2p::stop(result_handler handler)
     }
 
     stopped_ = true;
-    relay(error::service_stopped, nullptr);
-    connections_.clear(error::service_stopped);
     manual_ = nullptr;
+    relay(error::service_stopped, nullptr);
 
     hosts_.save(
         dispatch_.ordered_delegate(&p2p::handle_stop,
