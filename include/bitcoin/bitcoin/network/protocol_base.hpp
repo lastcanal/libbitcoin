@@ -68,7 +68,8 @@ protected:
     protocol_base(threadpool& pool, channel::ptr channel,
         const asio::duration& timeout, const std::string& name,
         completion_handler handler=nullptr)
-      : protocol_base(pool, channel, name, handler)
+      : protocol(pool, channel, timeout, name, handler),
+        weak_channel_(channel)
     {
     }
 
