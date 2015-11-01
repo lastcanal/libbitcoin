@@ -144,7 +144,8 @@ void session_seed::handle_connect(const code& ec, channel::ptr channel,
     if (blacklisted(channel->authority()))
     {
         log::debug(LOG_NETWORK)
-            << "Seed is on blacklisted address [" << seed << "] ";
+            << "Seed [" << seed << "] on blacklisted address ["
+            << channel->authority() << "]";
         handler(error::address_blocked);
         return;
     }
