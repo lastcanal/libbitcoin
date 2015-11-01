@@ -40,7 +40,6 @@ public:
 
     subscriber(threadpool& pool, const std::string& class_name,
         const std::string& log_name);
-    ////~subscriber();
 
     void subscribe(handler notifier);
     void relay(Args... args);

@@ -35,11 +35,6 @@ subscriber<Args...>::subscriber(threadpool& pool,
 {
 }
 
-////template <typename... Args>
-////subscriber<Args...>::~subscriber()
-////{
-////}
-
 template <typename... Args>
 void subscriber<Args...>::subscribe(handler notifier)
 {
