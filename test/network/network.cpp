@@ -32,6 +32,19 @@ using namespace bc::network;
 #define TEST_NAME \
     boost::unit_test::framework::current_test_case().p_name
 
+#define SETTINGS_TESTNET_ONE_THREAD_NO_CONNECTIONS(config) \
+    settings config = p2p::testnet; \
+    config.threads = 1; \
+    config.host_pool_capacity = 0; \
+    config.outbound_connections = 0; \
+    config.inbound_connection_limit = 0
+
+#define SETTINGS_TESTNET_ONE_THREAD_ONE_SEED(config) \
+    SETTINGS_TESTNET_ONE_THREAD_NO_CONNECTIONS(config); \
+    config.host_pool_capacity = 42; \
+    configuration.seeds = { configuration.seeds[1] }; \
+    configuration.hosts_file = get_log_path(TEST_NAME, "hosts")
+
 std::string get_log_path(const std::string& test, const std::string& file)
 {
     const auto path = test + "." + file + ".log";
@@ -89,22 +102,6 @@ static int stop_result(p2p& network)
 }
 
 BOOST_FIXTURE_TEST_SUITE(network_tests, log_setup_fixture)
-
-#define SETTINGS_TESTNET_ONE_THREAD_NO_CONNECTIONS(config) \
-    settings config = p2p::testnet; \
-    config.threads = 1; \
-    config.host_pool_capacity = 0; \
-    config.outbound_connections = 0; \
-    config.inbound_connection_limit = 0
-
-#define SETTINGS_TESTNET_ONE_THREAD_ONE_SEED(config) \
-    settings config = p2p::testnet; \
-    config.threads = 1; \
-    config.host_pool_capacity = 42; \
-    config.outbound_connections = 0; \
-    config.inbound_connection_limit = 0; \
-    configuration.seeds = { configuration.seeds[1] }; \
-    configuration.hosts_file = get_log_path(TEST_NAME, "hosts")
 
 BOOST_AUTO_TEST_CASE(p2p__start__no_connections__start_stop_success)
 {
@@ -187,6 +184,27 @@ BOOST_AUTO_TEST_CASE(p2p__start__seed_session_expiration_timeout__start_operatio
     configuration.channel_expiration_minutes = 0;
     p2p network(configuration);
     BOOST_REQUIRE_EQUAL(start_result(network), error::operation_failed);
+    BOOST_REQUIRE_EQUAL(stop_result(network), error::success);
+}
+
+BOOST_AUTO_TEST_CASE(p2p__start__seed_session_blacklisted__start_operation_failed_stop_success)
+{
+    print_headers(TEST_NAME);
+    SETTINGS_TESTNET_ONE_THREAD_NO_CONNECTIONS(configuration);
+    configuration.host_pool_capacity = 42;
+    configuration.hosts_file = get_log_path(TEST_NAME, "hosts");
+    configuration.seeds =
+    {
+        { "testnet-seed.bluematt.me:18333" }
+    };
+    configuration.blacklists =
+    {
+        { "[2604:a880:1:20::269:c001]:18333" }
+    };
+    p2p network(configuration);
+
+    // The blacklist may not be complete, in which case this can fail.
+    BOOST_CHECK_EQUAL(start_result(network), error::operation_failed);
     BOOST_REQUIRE_EQUAL(stop_result(network), error::success);
 }
 
