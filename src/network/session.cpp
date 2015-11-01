@@ -159,6 +159,8 @@ void session::register_channel(channel::ptr channel,
         dispatch_.ordered_delegate(&session::handle_stopped,
             shared_from_this(), _1, handle_stopped);
 
+    channel->start();
+
     // Call remove just after stopped is called.
     const auto remove_handler =
         dispatch_.ordered_delegate(&session::remove,
@@ -202,7 +204,7 @@ void session::handle_pend(const code& ec, channel::ptr channel,
     attach<protocol_version>(channel, network_.height(), handler);
 
     // Start reading messages from the socket.
-    channel->start();
+    channel->talk();
 }
 
 void session::handle_handshake(const code& ec, channel::ptr channel,

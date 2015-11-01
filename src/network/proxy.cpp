@@ -60,24 +60,34 @@ using boost::posix_time::time_duration;
 // TODO: this is made-up, configure payload size guard for DoS protection.
 static constexpr size_t max_payload_size = 10 * 1024 * 1024;
 
+// Cache the address for logging after stop.
+config::authority proxy::authority_factory(asio::socket_ptr socket)
+{
+    boost_code ec;
+    const auto endpoint = socket->remote_endpoint(ec);
+    return ec ? config::authority() : config::authority(endpoint);
+}
+
 proxy::proxy(threadpool& pool, asio::socket_ptr socket, uint32_t magic)
-  : stopped_(false),
+  : stopped_(true),
     magic_(magic),
     dispatch_(pool),
     socket_(socket),
+    authority_(authority_factory(socket)),
     message_subscriber_(pool),
-    stop_subscriber_(std::make_shared<stop_subscriber>(pool, "stop_subscriber", LOG_NETWORK))
+    stop_subscriber_(std::make_shared<stop_subscriber>(pool, "stop_subscriber",
+        LOG_NETWORK))
 {
-    // Cache the address for logging after stop.
-    boost_code ec;
-    const auto endpoint = socket_->remote_endpoint(ec);
-    if (!ec)
-        authority_ = config::authority(endpoint);
 }
 
 proxy::~proxy()
 {
     stop(error::channel_stopped);
+}
+
+void proxy::start()
+{
+    stopped_ = false;
 }
 
 void proxy::talk()

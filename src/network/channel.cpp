@@ -60,6 +60,11 @@ channel::channel(threadpool& pool, asio::socket_ptr socket,
 
 void channel::start()
 {
+    proxy::start();
+}
+
+void channel::talk()
+{
     proxy::talk();
     start_timers();
 }
