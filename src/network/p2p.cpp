@@ -25,6 +25,7 @@
 #include <string>
 #include <vector>
 #include <bitcoin/bitcoin/config/endpoint.hpp>
+#include <bitcoin/bitcoin/define.hpp>
 #include <bitcoin/bitcoin/error.hpp>
 #include <bitcoin/bitcoin/network/channel.hpp>
 #include <bitcoin/bitcoin/network/hosts.hpp>
@@ -39,6 +40,7 @@
 #include <bitcoin/bitcoin/network/session_outbound.hpp>
 #include <bitcoin/bitcoin/network/session_seed.hpp>
 #include <bitcoin/bitcoin/utility/assert.hpp>
+#include <bitcoin/bitcoin/utility/log.hpp>
 #include <bitcoin/bitcoin/utility/thread.hpp>
 #include <bitcoin/bitcoin/utility/threadpool.hpp>
 
@@ -209,6 +211,8 @@ void p2p::handle_hosts_loaded(const code& ec, result_handler handler)
 
     if (ec)
     {
+        log::error(LOG_NETWORK)
+            << "Error loading host addresses: " << ec.message();
         handler(ec);
         return;
     }
@@ -232,6 +236,8 @@ void p2p::handle_hosts_seeded(const code& ec, result_handler handler)
 
     if (ec)
     {
+        log::error(LOG_NETWORK)
+            << "Error seeding host addresses: " << ec.message();
         handler(ec);
         return;
     }
@@ -258,7 +264,7 @@ void p2p::stop(result_handler handler)
 {
     if (stopped())
     {
-        handle_stop(error::service_stopped, handler);
+        handle_hosts_saved(error::service_stopped, handler);
         return;
     }
 
@@ -267,7 +273,7 @@ void p2p::stop(result_handler handler)
     relay(error::service_stopped, nullptr);
 
     hosts_.save(
-        dispatch_.ordered_delegate(&p2p::handle_stop,
+        dispatch_.ordered_delegate(&p2p::handle_hosts_saved,
             this, _1, handler));
 
     // Join will wait for host save to complete, including handle_stop call.
@@ -275,8 +281,12 @@ void p2p::stop(result_handler handler)
     pool_.join();
 }
 
-void p2p::handle_stop(const code& ec, result_handler handler)
+void p2p::handle_hosts_saved(const code& ec, result_handler handler)
 {
+    if (!stopped() && ec)
+        log::error(LOG_NETWORK)
+            << "Error saving hosts file: " << ec.message();
+
     if (handler)
         handler(ec);
 }

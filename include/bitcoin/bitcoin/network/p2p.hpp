@@ -172,9 +172,9 @@ private:
     }
 
     bool stopped() const;
-    void handle_stop(const code& ec, result_handler handler);
     void handle_hosts_loaded(const code& ec, result_handler handler);
     void handle_hosts_seeded(const code& ec, result_handler handler);
+    void handle_hosts_saved(const code& ec, result_handler handler);
 
     bool stopped_;
     size_t height_;

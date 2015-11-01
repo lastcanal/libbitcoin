@@ -160,7 +160,7 @@ void channel::handle_expiration(const code& ec)
     if (stopped())
         return;
 
-    log::info(LOG_NETWORK)
+    log::debug(LOG_NETWORK)
         << "Channel lifetime expired [" << authority() << "]";
 
     stop(error::channel_timeout);
@@ -171,7 +171,7 @@ void channel::handle_inactivity(const code& ec)
     if (stopped())
         return;
 
-    log::info(LOG_NETWORK)
+    log::debug(LOG_NETWORK)
         << "Channel inactivity timeout [" << authority() << "]";
 
     stop(error::channel_timeout);
@@ -185,6 +185,9 @@ void channel::handle_revival(const code& ec)
     // Nothing to do, no handler registered.
     if (!revival_handler_)
         return;
+
+    log::debug(LOG_NETWORK)
+        << "Channel revival invoked [" << authority() << "]";
 
     revival_handler_(ec);
     reset_revival();
