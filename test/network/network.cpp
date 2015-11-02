@@ -36,8 +36,11 @@ using namespace bc::network;
 #define SEED1 \
     { "testnet-seed.bluematt.me:18333" }
 
-#define SEED1_AUTHORITY \
-    { "[2604:a880:1:20::269:c001]:18333" }
+#define SEED1_AUTHORITIES \
+    { \
+      { "[2604:a880:1:20::269:c001]:18333" }, \
+      { "104.236.132.224:18333" } \
+    }
 
 #define SETTINGS_TESTNET_ONE_THREAD_NO_CONNECTIONS(config) \
     settings config = p2p::testnet; \
@@ -233,7 +236,7 @@ BOOST_AUTO_TEST_CASE(p2p__start__seed_session_blacklisted__start_operation_faile
     configuration.host_pool_capacity = 42;
     configuration.hosts_file = get_log_path(TEST_NAME, "hosts");
     configuration.seeds = { SEED1 };
-    configuration.blacklists = { SEED1_AUTHORITY };
+    configuration.blacklists = SEED1_AUTHORITIES;
     p2p network(configuration);
 
     // The blacklist may not be complete, in which case this test can fail.
