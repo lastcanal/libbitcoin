@@ -41,7 +41,7 @@ namespace libbitcoin {
 namespace network {
 
 /// This class provides the top level public interface to the networking layer.
-/// All operations are thread safe
+/// All methods with the exception of start and stop are thread safe.
 class BC_API p2p
 {
 public:
@@ -66,86 +66,86 @@ public:
     void operator=(const p2p&) = delete;
 
     /// Return the current block height.
-    size_t height();
+    virtual size_t height();
 
     /// Set the current block height, for use in version messages.
-    void set_height(size_t value);
+    virtual void set_height(size_t value);
 
     /// Calls handler after hosts file load and seeding has completed.
-    void start(result_handler handler);
+    virtual void start(result_handler handler);
 
     /// Stop after saving hosts file.
     /// This call is optional as destruct will do the same. The handler
     /// provides the hosts save result, called after all threads are coalesced.
     /// This must be called from the thread that constructed this class.
-    void stop(result_handler handler);
+    virtual void stop(result_handler handler);
 
     /// Stop after saving hosts file.
     /// This call is optional as destruct will do the same, although this
     /// allows the caller to block until all threads are coalesced.
     /// This must be called from the thread that constructed this class.
-    void stop();
+    virtual void stop();
 
     // ------------------------------------------------------------------------
 
     /// Determine if the nonce is from a pending connection.
-    void pent(uint64_t version_nonce, truth_handler handler);
+    virtual void pent(uint64_t version_nonce, truth_handler handler);
 
     /// Pend a connection.
-    void pend(channel::ptr channel, result_handler handler);
+    virtual void pend(channel::ptr channel, result_handler handler);
 
     /// Unpend a connection.
-    void unpend(channel::ptr channel, result_handler handler);
+    virtual void unpend(channel::ptr channel, result_handler handler);
 
     /// Get the number of pending connections.
-    void pent_count(count_handler handler);
+    virtual void pent_count(count_handler handler);
 
     // ------------------------------------------------------------------------
 
     /// Determine if there exists a connection to the address.
-    void connected(const address& address, truth_handler handler);
+    virtual void connected(const address& address, truth_handler handler);
 
     /// Store a connection.
-    void store(channel::ptr channel, result_handler handler);
+    virtual void store(channel::ptr channel, result_handler handler);
 
     /// Remove a connection.
-    void remove(channel::ptr channel, result_handler handler);
+    virtual void remove(channel::ptr channel, result_handler handler);
 
     /// Get the number of connections.
-    void connected_count(count_handler handler);
+    virtual void connected_count(count_handler handler);
 
     // ------------------------------------------------------------------------
 
     /// Get a randomly-selected adress.
-    void fetch_address(address_handler handler);
+    virtual void fetch_address(address_handler handler);
 
     /// Store an address.
-    void store(const address& address, result_handler handler);
+    virtual void store(const address& address, result_handler handler);
 
     /// Store a collection of addresses.
-    void store(const address::list& addresses, result_handler handler);
+    virtual void store(const address::list& addresses, result_handler handler);
 
     /// Remove an address.
-    void remove(const address& address, result_handler handler);
+    virtual void remove(const address& address, result_handler handler);
 
     /// Get the number of addresses.
-    void address_count(count_handler handler);
+    virtual void address_count(count_handler handler);
 
     // ------------------------------------------------------------------------
 
     /// Maintain a connection to hostname:port.
-    void connect(const std::string& hostname, uint16_t port);
+    virtual void connect(const std::string& hostname, uint16_t port);
 
     /// Maintain a connection to hostname:port.
     /// The callback that will fire on first connection established only.
-    void connect(const std::string& hostname, uint16_t port,
+    virtual void connect(const std::string& hostname, uint16_t port,
         channel_handler handler);
 
     /// Subscribe to connection creation events.
-    void subscribe(channel_handler handler);
+    virtual void subscribe(channel_handler handler);
 
     /// Relay a connection creation or p2p stop event to subscribers.
-    void relay(const code& ec, channel::ptr channel);
+    virtual void relay(const code& ec, channel::ptr channel);
 
     /// Send a message to all connections.
     template <typename Message>
