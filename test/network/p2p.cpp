@@ -111,7 +111,7 @@ static int stop_result(p2p& network)
     return promise.get_future().get().value();
 }
 
-BOOST_FIXTURE_TEST_SUITE(network_tests, log_setup_fixture)
+BOOST_FIXTURE_TEST_SUITE(p2p_tests, log_setup_fixture)
 
 BOOST_AUTO_TEST_CASE(p2p__height__default__zero)
 {
@@ -242,6 +242,14 @@ BOOST_AUTO_TEST_CASE(p2p__start__seed_session_blacklisted__start_operation_faile
     // The blacklist may not be complete, in which case this test can fail.
     BOOST_CHECK_EQUAL(start_result(network), error::operation_failed);
     BOOST_REQUIRE_EQUAL(stop_result(network), error::success);
+}
+
+BOOST_AUTO_TEST_CASE(p2p__connect__no_sessions__start_success__success)
+{
+    print_headers(TEST_NAME);
+    SETTINGS_TESTNET_ONE_THREAD_NO_CONNECTIONS(configuration);
+    p2p network(configuration);
+    BOOST_REQUIRE_EQUAL(start_result(network), error::success);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

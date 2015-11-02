@@ -273,7 +273,7 @@
     <ClCompile Include="..\..\..\..\test\wallet\hd_private.cpp">
       <Filter>src\wallet</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\test\network\network.cpp">
+    <ClCompile Include="..\..\..\..\test\network\p2p.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
   </ItemGroup>
