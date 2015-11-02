@@ -137,23 +137,25 @@ public:
     virtual void connect(const std::string& hostname, uint16_t port);
 
     /// Maintain a connection to hostname:port.
-    /// The callback that will fire on first connection established only.
+    /// The callback is invoked by the first connection creation only.
     virtual void connect(const std::string& hostname, uint16_t port,
         channel_handler handler);
 
-    /// Subscribe to connection creation events.
+    /// Subscribe to connection creation and service stop events.
     virtual void subscribe(channel_handler handler);
 
-    /// Relay a connection creation or p2p stop event to subscribers.
+    /// Relay a connection creation or service stop event to subscribers.
     virtual void relay(const code& ec, channel::ptr channel);
 
     /// Send a message to all connections.
+    /// The handler is invoked for each affected channel.
     template <typename Message>
-    void broadcast(const Message& message, channel_handler handler)
+    void broadcast(const Message& message, channel_handler handle_channel,
+        result_handler handle_complete)
     {
         dispatch_.ordered(
             std::bind(&network::p2p::do_broadcast<Message>,
-                this, message, handler));
+                this, message, handle_channel, handle_complete));
     }
 
 private:
@@ -166,9 +168,10 @@ private:
     }
 
     template <typename Message>
-    void do_broadcast(const Message& message, channel_handler handler) const
+    void do_broadcast(const Message& message, channel_handler handle_channel,
+        result_handler handle_complete) const
     {
-        connections_.broadcast(message, handler);
+        connections_.broadcast(message, handle_channel, handle_complete);
     }
 
     bool stopped() const;

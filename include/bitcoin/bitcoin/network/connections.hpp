@@ -30,6 +30,7 @@
 #include <bitcoin/bitcoin/error.hpp>
 #include <bitcoin/bitcoin/network/channel.hpp>
 #include <bitcoin/bitcoin/utility/dispatcher.hpp>
+#include <bitcoin/bitcoin/utility/synchronizer.hpp>
 #include <bitcoin/bitcoin/utility/threadpool.hpp>
 
 namespace libbitcoin {
@@ -52,12 +53,18 @@ public:
     void operator=(const connections&) = delete;
 
     template <typename Message>
-    void broadcast(const Message& message, channel_handler handler) const
+    void broadcast(const Message& message, channel_handler handle_channel,
+        result_handler handle_complete) const
     {
+        static const auto name = "SEND";
+        const auto count = buffer_.size();
+        const auto complete = synchronize(handle_complete, count, name, true);
+
         for (const auto channel: buffer_)
             channel->send(message, [=](const code& ec)
             {
-                handler(ec, channel);
+                complete(error::success);
+                handle_channel(ec, channel);
             });
     }
 
