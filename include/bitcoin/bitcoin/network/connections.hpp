@@ -20,10 +20,12 @@
 #ifndef LIBBITCOIN_NETWORK_CONNECTIONS_HPP
 #define LIBBITCOIN_NETWORK_CONNECTIONS_HPP
 
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
-#include <string>
 #include <functional>
+#include <memory>
+#include <string>
 #include <vector>
 #include <bitcoin/bitcoin/config/authority.hpp>
 #include <bitcoin/bitcoin/define.hpp>
@@ -56,16 +58,26 @@ public:
     void broadcast(const Message& message, channel_handler handle_channel,
         result_handler handle_complete) const
     {
-        static const auto name = "SEND";
-        const auto count = buffer_.size();
-        const auto complete = synchronize(handle_complete, count, name, true);
+        const auto size = buffer_.size();
+        const auto counter = std::make_shared<std::atomic<size_t>>(size);
+        const auto result = std::make_shared<std::atomic<error::error_code_t>>(
+            error::success);
 
         for (const auto channel: buffer_)
-            channel->send(message, [=](const code& ec)
+        {
+            const auto handle_send = [=](const code& ec)
             {
-                complete(error::success);
                 handle_channel(ec, channel);
-            });
+
+                if (ec)
+                    result->store(error::operation_failed);
+
+                if (counter->fetch_sub(1) == 1)
+                    handle_complete(result->load());
+            };
+
+            channel->send(message, handle_send);
+        }
     }
 
     void clear(const code& ec);
