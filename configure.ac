@@ -132,6 +132,20 @@ AC_MSG_RESULT([$enable_testnet])
 AS_CASE([${enable_testnet}], [yes], AC_DEFINE([ENABLE_TESTNET]))
 AS_CASE([${enable_testnet}], [yes], AC_SUBST([testnet], [-DENABLE_TESTNET]))
 
+# Implement --enable-regtest and define ENABLE_REGTEST and output ${regtest}.
+#------------------------------------------------------------------------------
+AC_MSG_CHECKING([--enable-regtest option])
+AC_ARG_ENABLE([regtest],
+    AS_HELP_STRING([--enable-regtest],
+        [Compile for regtest (deprecated). @<:@default=no@:>@]),
+    [enable_regtest=$enableval],
+    [enable_regtest=no])
+AC_MSG_RESULT([$enable_regtest])
+AS_CASE([${enable_regtest}], [yes], AC_DEFINE([ENABLE_REGTEST]))
+AS_CASE([${enable_regtest}], [yes], AC_SUBST([regtest], [-DENABLE_REGTEST]))
+AS_CASE([${enable_regtest}], [yes], AC_DEFINE([ENABLE_TESTNET]))
+AS_CASE([${enable_regtest}], [yes], AC_SUBST([regtest], [-DENABLE_TESTNET]))
+
 # Inherit --enable-shared and define BOOST_TEST_DYN_LINK.
 #------------------------------------------------------------------------------
 AS_CASE([${enable_shared}], [yes], AC_DEFINE([BOOST_TEST_DYN_LINK]))
