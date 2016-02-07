@@ -41,7 +41,11 @@ using std::placeholders::_1;
 using std::placeholders::_2;
 
 // Based on bitcoinstats.com/network/dns-servers
-#ifdef ENABLE_TESTNET
+#ifdef ENABLE_REGTEST
+const config::endpoint::list seeder::defaults
+{
+};
+#elif ENABLE_TESTNET
 const config::endpoint::list seeder::defaults
 {
     { "testnet-seed.alexykot.me", 18333 },

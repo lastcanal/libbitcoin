@@ -136,7 +136,10 @@ block_type genesis_block()
         "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b");
     header.bits = 0x1d00ffff;
 
-#ifdef ENABLE_TESTNET
+#ifdef ENABLE_REGTEST
+    header.timestamp = 1296688602;
+    header.nonce = 2;
+#elif ENABLE_TESTNET
     header.timestamp = 1296688602;
     header.nonce = 414098458;
 #else

@@ -53,7 +53,11 @@ BC_CONSTEXPR uint32_t peer_minimum_version = 60001;
 BC_CONSTEXPR uint32_t reward_interval = 210000;
 BC_CONSTEXPR uint32_t coinbase_maturity = 100;
 BC_CONSTEXPR uint32_t initial_block_reward = 50;
+#ifdef ENABLE_REGTEST
+BC_CONSTEXPR uint32_t max_work_bits = 0x207fffff;
+#else
 BC_CONSTEXPR uint32_t max_work_bits = 0x1d00ffff;
+#endif
 BC_CONSTEXPR uint32_t max_input_sequence = max_uint32;
 
 // Deprecated (use more descriptive).
