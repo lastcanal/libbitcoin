@@ -75,7 +75,7 @@ public:
         no_blocks_start = 32000,
 
         // This preceded the BIP system.
-        headers = 31800,
+        headers = 70002,
 
         // We require at least this of peers, address.time fields.
         minimum = 31402,

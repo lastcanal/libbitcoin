@@ -133,6 +133,7 @@ public:
     void set_nonce(uint32_t value);
 
     hash_digest hash() const;
+    hash_digest proof_of_work_hash() const;
 
     // Validation.
     //-----------------------------------------------------------------------------

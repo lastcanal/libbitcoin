@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(satoshi_words_mainnet)
     message.resize(raw_message.size() - 8);
     std::copy(raw_message.begin() + 8, raw_message.end(), message.begin());
 
-    BOOST_REQUIRE_EQUAL(message, "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks");
+    BOOST_REQUIRE_EQUAL(message, "NY Times 05/Oct/2011 Steve Jobs, Apple’s Visionary, Dies at 56");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

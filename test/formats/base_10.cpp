@@ -51,8 +51,8 @@ TEST_AMOUNT(zero, 0, "0")
 TEST_AMOUNT(max_uint64, max_uint64, "18446744073709551615")
 
 // Max money (mainnet, testnet):
-TEST_AMOUNT(max_money_retarget, max_money(), "20999999.9769", btc_decimal_places)
-TEST_AMOUNT(overflow_max_money_retarget, max_money() + 1, "20999999.97690001", btc_decimal_places)
+TEST_AMOUNT(max_money_retarget, max_money(), "83999999.9076", btc_decimal_places)
+TEST_AMOUNT(overflow_max_money_retarget, max_money() + 1, "83999999.90760001", btc_decimal_places)
 
 // Max money (regtest):
 TEST_AMOUNT(max_money, max_money(false), "14999.99998350", btc_decimal_places)
@@ -89,8 +89,8 @@ TEST_FORMAT(zero, "0", 0)
 TEST_FORMAT(max_uint64, "18446744073709551615", max_uint64)
 
 // Max money (mainnet, testnet):
-TEST_FORMAT(max_money_retarget, "20999999.9769", max_money(), btc_decimal_places)
-TEST_FORMAT(overflow_max_money_retarget, "20999999.97690001", max_money() + 1, btc_decimal_places)
+TEST_FORMAT(max_money_retarget, "83999999.9076", max_money(), btc_decimal_places)
+TEST_FORMAT(overflow_max_money_retarget, "83999999.90760001", max_money() + 1, btc_decimal_places)
 
 // Max money (regtest):
 TEST_FORMAT(max_money, "14999.9999835", max_money(false), btc_decimal_places)

@@ -37,6 +37,8 @@ const uint8_t ec_private::compressed_sentinel = 0x01;
 
 const uint8_t ec_private::mainnet_wif = 0x80;
 const uint8_t ec_private::mainnet_p2kh = 0x00;
+////const uint8_t ec_private::litecoin_mainnet_wif = 0xb0;
+////const uint8_t ec_private::litecoin_mainnet_p2kh = 0x30;
 const uint16_t ec_private::mainnet = to_version(mainnet_p2kh, mainnet_wif);
 
 const uint8_t ec_private::testnet_wif = 0xef;

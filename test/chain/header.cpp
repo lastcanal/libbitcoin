@@ -415,12 +415,12 @@ BOOST_AUTO_TEST_CASE(header__is_valid_proof_of_work__hash_greater_bits__returns_
 BOOST_AUTO_TEST_CASE(header__is_valid_proof_of_work__hash_less_than_bits__returns_true)
 {
     const chain::header instance(
-        4u,
-        hash_literal("000000000000000003ddc1e929e2944b8b0039af9aa0d826c480a83d8b39c373"),
-        hash_literal("a6cb0b0d6531a71abe2daaa4a991e5498e1b6b0b51549568d0f9d55329b905df"),
-        1474388414u,
-        402972254u,
-        2842832236u);
+        2u,
+        hash_literal("d20a48a5fdb985abf7770ad675ecf6650366f082ebbb88107b1d1d263f4cb36d"),
+        hash_literal("fa924b06312e7262a7be257d4ea09f3688ea348b5f306b4015e402accc18bdbc"),
+        1404778904u,
+        453243797u,
+        2205155658u);
 
     BOOST_REQUIRE(instance.is_valid_proof_of_work());
 }

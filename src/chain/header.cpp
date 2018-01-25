@@ -416,6 +416,11 @@ hash_digest header::hash() const
     return hash;
 }
 
+hash_digest header::proof_of_work_hash() const
+{
+  return litecoin_hash(to_data());
+}
+
 // Validation helpers.
 //-----------------------------------------------------------------------------
 
@@ -445,7 +450,7 @@ bool header::is_valid_proof_of_work(bool retarget) const
         return false;
 
     // Ensure actual work is at least claimed amount (smaller is more work).
-    return to_uint256(hash()) <= target;
+    return to_uint256(proof_of_work_hash()) <= target;
 }
 
 // Validation.
